@@ -129,10 +129,11 @@ def main():
     # Buscar notícias
     news_data = fetch_news_from_feeds(RSS_FEEDS)
 
+    # Verificar se o DataFrame de notícias não está vazio
     if not news_data.empty:
         # Filtros no menu lateral
         st.sidebar.header("Filtros")
-        #sources = st.sidebar.multiselect("Selecione a fonte", options=news_data["source"].unique(), default=news_data["source"].unique())
+        sources = st.sidebar.multiselect("Selecione a fonte", options=news_data["source"].unique(), default=news_data["source"].unique())
         start_date = st.sidebar.date_input("Data inicial", value=datetime(2023, 1, 1))
         end_date = st.sidebar.date_input("Data final", value=datetime.now())
         keywords = st.sidebar.text_area("Palavras-chave (separadas por vírgulas)", value="cartão de crédito, cartões de crédito, mercado de crédito")
@@ -140,15 +141,15 @@ def main():
         # Aplicar filtros
         news_data["date_parsed"] = pd.to_datetime(news_data["date"], errors='coerce')
         filtered_data = news_data[
-            (news_data["source"].isin(sources)) &
-            (news_data["date_parsed"].dt.date >= start_date) &
-            (news_data["date_parsed"].dt.date <= end_date)
+            (news_data["source"].isin(sources)) &  # Filtro por fontes
+            (news_data["date_parsed"].dt.date >= start_date) &  # Filtro por data inicial
+            (news_data["date_parsed"].dt.date <= end_date)  # Filtro por data final
         ]
 
         # Filtro por palavras-chave
         if keywords:
             keyword_list = [kw.strip().lower() for kw in keywords.split(",")]
-            filtered_data = filtered_data[
+            filtered_data = filtered_data[ 
                 filtered_data["title"].str.lower().str.contains("|".join(keyword_list)) |
                 filtered_data["summary"].str.lower().str.contains("|".join(keyword_list))
             ]
@@ -174,6 +175,7 @@ def main():
                 st.write("Nenhuma informação para exibir na distribuição temporal.")
     else:
         st.write("Não foi possível buscar as notícias.")
+
 
 # Executar o Streamlit
 if __name__ == "__main__":
