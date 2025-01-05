@@ -9,14 +9,11 @@ from textblob import TextBlob
 # Fontes de RSS
 RSS_FEEDS = [
     {"name": "G1 Economia", "url": "https://g1.globo.com/rss/g1/economia/"},
-    {"name": "Exame", "url": "https://exame.com/feed/"},
-    {"name": "Estadão Economia", "url": "https://economia.estadao.com.br/rss/ultimas"},
     {"name": "InfoMoney", "url": "https://www.infomoney.com.br/feed/"},
-    {"name": "Valor Econômico", "url": "https://valor.globo.com/rss/"},
+    {"name": "Banco Central do Brasil", "url": "https://www.bcb.gov.br/api/feed/sitebcb/sitefeeds/noticias?"},
     {"name": "CreditCards.com", "url": "https://www.creditcards.com/news/rss/"},
-    {"name": "Forbes Finance", "url": "https://www.forbes.com/finance/feed/"},
     {"name": "Finsiders Brasil", "url": "https://finsidersbrasil.com.br/feed"},
-    {"name": "FEBRABAN", "url": "https://portal.febraban.org.br/rss"}
+    {"name": "FEBRABAN", "url": "https://portal.febraban.org.br/Noticias"}
 ]
 
 # Função para buscar e processar as notícias de múltiplas fontes
