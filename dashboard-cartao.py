@@ -4,8 +4,9 @@ import streamlit as st
 import matplotlib.pyplot as plt
 from wordcloud import WordCloud
 from datetime import datetime
+from textblob import TextBlob
 
-# Lista de fontes RSS
+# Fontes de RSS
 RSS_FEEDS = [
     {"name": "G1 Economia", "url": "https://g1.globo.com/rss/g1/economia/"},
     {"name": "Exame", "url": "https://exame.com/feed/"},
@@ -13,7 +14,9 @@ RSS_FEEDS = [
     {"name": "InfoMoney", "url": "https://www.infomoney.com.br/feed/"},
     {"name": "Valor Econômico", "url": "https://valor.globo.com/rss/"},
     {"name": "CreditCards.com", "url": "https://www.creditcards.com/news/rss/"},
-    {"name": "Forbes Finance", "url": "https://www.forbes.com/finance/feed/"}
+    {"name": "Forbes Finance", "url": "https://www.forbes.com/finance/feed/"},
+    {"name": "Finsiders Brasil", "url": "https://finsidersbrasil.com.br/feed"},
+    {"name": "FEBRABAN", "url": "https://portal.febraban.org.br/rss"}
 ]
 
 # Função para buscar e processar as notícias de múltiplas fontes
@@ -31,14 +34,23 @@ def fetch_news_from_feeds(feeds):
             })
     return pd.DataFrame(all_news)
 
+# Função para análise de sentimentos
+def analyze_sentiment(text):
+    sentiment = TextBlob(text).sentiment.polarity
+    if sentiment > 0:
+        return "Positivo"
+    elif sentiment < 0:
+        return "Negativo"
+    else:
+        return "Neutro"
+
 # Função para exibir as notícias no dashboard
 def display_news(news_df):
-    #st.header("Notícias sobre Cartões de Crédito e Mercado de Crédito")
     for _, row in news_df.iterrows():
         st.markdown(f"### [{row['title']}]({row['link']})")
         st.markdown(f"**Data:** {row['date']}")
         st.markdown(f"**Fonte:** {row['source']}")
-        #st.markdown(f"**Resumo:** {row['summary']}")
+        st.markdown(f"**Sentimento:** {row['sentiment']}")
         st.write("---")
 
 # Função para exibir a distribuição das notícias
@@ -74,13 +86,40 @@ def display_distribution(news_df):
     plt.axis("off")
     st.pyplot(plt)
 
+# Função para exibir a análise de sentimentos das notícias
+def display_sentiment_analysis(news_df):
+    st.header("Análise de Sentimentos das Notícias")
+    sentiment_counts = news_df["sentiment"].value_counts()
+    st.bar_chart(sentiment_counts)
+
+# Função para categorizar as notícias
+categories = {
+    "Cashback": ["cashback", "dinheiro de volta", "recompensas"],
+    "Travel Rewards": ["milhas", "viagem", "aéreas"],
+    "Crédito Corporativo": ["empresarial", "corporativo", "business"],
+    "Fintechs": ["fintech", "bancos digitais", "plataformas"]
+}
+
+def categorize_news(news_df):
+    category_counts = {cat: 0 for cat in categories}
+    for _, row in news_df.iterrows():
+        text = (row['title'] + " " + row['summary']).lower()
+        for category, keywords in categories.items():
+            if any(keyword in text for keyword in keywords):
+                category_counts[category] += 1
+    return category_counts
+
+# Exibir as categorias no dashboard
+def display_categories(news_df):
+    st.subheader("Categorias de Notícias por Tema")
+    categories = categorize_news(news_df)
+    st.bar_chart(pd.DataFrame.from_dict(categories, orient='index', columns=["Quantidade"]))
+
 # Função principal para criar o dashboard
 def main():
     st.title("Dashboard de Notícias - Cartões de Crédito")
-    st.sidebar.title("Configurações")
-
-    # Atualizar feed de notícias
-    st.sidebar.write("Buscando notícias...")
+    
+    # Buscar notícias
     news_data = fetch_news_from_feeds(RSS_FEEDS)
 
     if not news_data.empty:
@@ -107,6 +146,9 @@ def main():
                 filtered_data["summary"].str.lower().str.contains("|".join(keyword_list))
             ]
 
+        # Análise de Sentimentos
+        filtered_data["sentiment"] = filtered_data["title"].apply(analyze_sentiment)
+
         # Exibição de abas no dashboard
         tab1, tab2 = st.tabs(["Notícias", "Distribuição Temporal"])
 
@@ -119,6 +161,8 @@ def main():
         with tab2:
             if not filtered_data.empty:
                 display_distribution(filtered_data)
+                display_sentiment_analysis(filtered_data)
+                display_categories(filtered_data)
             else:
                 st.write("Nenhuma informação para exibir na distribuição temporal.")
     else:
