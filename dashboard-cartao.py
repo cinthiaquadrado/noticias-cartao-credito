@@ -1,3 +1,6 @@
+
+st.set_page_config(page_title="Análise de Notícias", layout="wide")
+
 # Fontes de RSS
 RSS_FEEDS = [
     {"name": "G1 Economia", "url": "https://g1.globo.com/rss/g1/economia/"},
@@ -157,5 +160,5 @@ def main():
         st.write("Não foi possível buscar as notícias.")
 
 if __name__ == "__main__":
-    st.set_page_config(page_title="Análise de Notícias", layout="wide")
+
     main()
