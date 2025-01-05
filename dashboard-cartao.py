@@ -1,11 +1,3 @@
-import feedparser
-import pandas as pd
-import streamlit as st
-import matplotlib.pyplot as plt
-from wordcloud import WordCloud
-from datetime import datetime
-from textblob import TextBlob
-
 # Fontes de RSS
 RSS_FEEDS = [
     {"name": "G1 Economia", "url": "https://g1.globo.com/rss/g1/economia/"},
@@ -24,16 +16,7 @@ def fetch_news_from_feeds(feeds):
     for feed in feeds:
         feed_data = feedparser.parse(feed["url"])
 
-        # Removido os logs para o dashboard
-        # st.write(f"Processando feed: {feed['name']}")
-        # st.write(f"Link: {feed['url']}")
-        # st.write("Entradas do feed:", len(feed_data.entries))  # Verifica o número de entradas
-
         for entry in feed_data.entries:
-            # Removido o log de depuração para cada entrada
-            # st.write(f"Título: {entry.get('title', 'Sem título')}")
-            # st.write(f"Link: {entry.get('link', 'Sem link')}")
-
             all_news.append({
                 "title": entry.get("title", "Sem título"),
                 "date": entry.get("published", "Data desconhecida"),
@@ -43,13 +26,13 @@ def fetch_news_from_feeds(feeds):
             })
     return pd.DataFrame(all_news)
 
-
-# Função para análise de sentimentos
-def analyze_sentiment(text):
-    sentiment = TextBlob(text).sentiment.polarity
-    if sentiment > 0:
+# Função para análise de sentimentos com VADER
+def analyze_sentiment_vader(text):
+    analyzer = SentimentIntensityAnalyzer()
+    sentiment_score = analyzer.polarity_scores(text)
+    if sentiment_score['compound'] > 0.05:
         return "Positivo"
-    elif sentiment < 0:
+    elif sentiment_score['compound'] < -0.05:
         return "Negativo"
     else:
         return "Neutro"
@@ -67,18 +50,16 @@ def display_news(news_df):
 def display_distribution(news_df):
     st.header("Distribuição Temporal de Notícias")
     news_df['date_parsed'] = pd.to_datetime(news_df['date'], errors='coerce')
-    news_df['date_parsed'] = news_df['date_parsed'].fillna(datetime.now())  # Preenche datas inválidas com a data atual
+    news_df['date_parsed'] = news_df['date_parsed'].fillna(datetime.now())
 
-    # Opções de agrupamento
     group_by = st.selectbox("Agrupar por:", ["Dia", "Semana", "Mês"])
     if group_by == "Dia":
         date_counts = news_df['date_parsed'].dt.date.value_counts().sort_index()
     elif group_by == "Semana":
         date_counts = news_df['date_parsed'].dt.to_period("W").value_counts().sort_index()
-    else:  # Mês
+    else:
         date_counts = news_df['date_parsed'].dt.to_period("M").value_counts().sort_index()
 
-    # Exibir gráfico
     plt.figure(figsize=(10, 6))
     date_counts.plot(kind="bar", color="skyblue", alpha=0.7)
     plt.title("Distribuição de Notícias")
@@ -87,7 +68,6 @@ def display_distribution(news_df):
     plt.xticks(rotation=45)
     st.pyplot(plt)
 
-    # Nuvem de palavras
     st.subheader("Nuvem de Palavras")
     all_text = " ".join(news_df["title"].fillna("") + " " + news_df["summary"].fillna(""))
     wordcloud = WordCloud(width=800, height=400, background_color="white").generate(all_text)
@@ -129,27 +109,22 @@ def display_categories(news_df):
 def main():
     st.title("Dashboard de Notícias - Cartões de Crédito")
     
-    # Buscar notícias
     news_data = fetch_news_from_feeds(RSS_FEEDS)
 
-    # Verificar se o DataFrame de notícias não está vazio
     if not news_data.empty:
-        # Filtros no menu lateral
         st.sidebar.header("Filtros")
         sources = st.sidebar.multiselect("Selecione a fonte", options=news_data["source"].unique(), default=news_data["source"].unique())
         start_date = st.sidebar.date_input("Data inicial", value=datetime(2023, 1, 1))
         end_date = st.sidebar.date_input("Data final", value=datetime.now())
-        keywords = st.sidebar.text_area("Palavras-chave (separadas por vírgulas)", value="cartão de crédito, cartões de crédito, mercado de crédito")
+        keywords = st.sidebar.text_area("Palavras-chave (separadas por vírgulas)", value="Digite o seu termo de busca")
 
-        # Aplicar filtros
         news_data["date_parsed"] = pd.to_datetime(news_data["date"], errors='coerce')
         filtered_data = news_data[
-            (news_data["source"].isin(sources)) &  # Filtro por fontes
-            (news_data["date_parsed"].dt.date >= start_date) &  # Filtro por data inicial
-            (news_data["date_parsed"].dt.date <= end_date)  # Filtro por data final
+            (news_data["source"].isin(sources)) &  
+            (news_data["date_parsed"].dt.date >= start_date) &  
+            (news_data["date_parsed"].dt.date <= end_date)
         ]
 
-        # Filtro por palavras-chave
         if keywords:
             keyword_list = [kw.strip().lower() for kw in keywords.split(",")]
             filtered_data = filtered_data[ 
@@ -157,16 +132,12 @@ def main():
                 filtered_data["summary"].str.lower().str.contains("|".join(keyword_list))
             ]
 
-        # Análise de Sentimentos
-        filtered_data["sentiment"] = filtered_data["title"].apply(analyze_sentiment)
+        filtered_data["sentiment"] = filtered_data["title"].apply(analyze_sentiment_vader)
 
-        # Ordenar notícias pela data (ou pelo critério que preferir)
         filtered_data = filtered_data.sort_values(by="date_parsed", ascending=False)
 
-        # Limitar a 15 notícias
         top_news = filtered_data.head(15)
 
-        # Exibição de abas no dashboard
         tab1, tab2 = st.tabs(["Notícias", "Distribuição Temporal"])
 
         with tab1:
@@ -185,9 +156,6 @@ def main():
     else:
         st.write("Não foi possível buscar as notícias.")
 
-
-
-# Executar o Streamlit
 if __name__ == "__main__":
     st.set_page_config(page_title="Análise de Notícias", layout="wide")
     main()
