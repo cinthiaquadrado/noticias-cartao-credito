@@ -160,6 +160,7 @@ def main():
 
         top_news = filtered_data.head(15)
 
+        # Criar as abas
         tab1, tab2 = st.tabs(["Notícias", "Distribuição Temporal"])
 
         with tab1:
