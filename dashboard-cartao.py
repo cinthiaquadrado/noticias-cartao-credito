@@ -1,4 +1,4 @@
-
+# Configuração da página (mover para o início do código)
 st.set_page_config(page_title="Análise de Notícias", layout="wide")
 
 # Fontes de RSS
@@ -160,5 +160,4 @@ def main():
         st.write("Não foi possível buscar as notícias.")
 
 if __name__ == "__main__":
-
     main()
