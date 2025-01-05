@@ -95,20 +95,20 @@ def display_distribution(news_df):
     plt.ylabel(ylabel)
     st.pyplot(plt)
 
-# Função para gerar a nuvem de palavras com base na palavra-chave
-def generate_wordcloud(news_df, keywords):
-    # Filtrar as notícias por palavras-chave
-    if keywords:
-        keyword_list = [kw.strip().lower() for kw in keywords.split(",")]
-        filtered_df = news_df[
-            news_df["title"].str.lower().str.contains("|".join(keyword_list)) |
-            news_df["summary"].str.lower().str.contains("|".join(keyword_list))
-        ]
-    else:
-        filtered_df = news_df
+# Função para gerar a nuvem de palavras
+def generate_wordcloud(keywords, filtered_data):
+    if not keywords.strip():  # Verifica se a entrada de palavras-chave está vazia
+        st.warning("Por favor, insira palavras-chave para gerar a nuvem de palavras.")
+        return
+    st.write("Nuvem de Palavras")
+    wordcloud = WordCloud(width=800, height=400).generate(keywords)
+    plt.figure(figsize=(10, 5))
+    plt.imshow(wordcloud, interpolation='bilinear')
+    plt.axis('off')
+    st.pyplot()
 
     # Criar a nuvem de palavras
-    all_text = " ".join(filtered_df["title"].fillna("") + " " + filtered_df["summary"].fillna(""))
+    all_text = " ".join(filtered_data["title"].fillna("") + " " + filtered_data["summary"].fillna(""))
     wordcloud = WordCloud(width=800, height=400, background_color="white").generate(all_text)
     
     st.subheader("Nuvem de Palavras")
@@ -168,7 +168,7 @@ def main():
 
     with tab2:
         display_distribution(filtered_data)
-        generate_wordcloud(keywords)
+        generate_wordcloud(keywords, filtered_data)
         display_sentiment_analysis(filtered_data)
 
 if __name__ == "__main__":
