@@ -1,5 +1,13 @@
+import feedparser
+import pandas as pd
+import streamlit as st
+import matplotlib.pyplot as plt
+from wordcloud import WordCloud
+from datetime import datetime
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+
 # Configuração da página (mover para o início do código)
-streamlit.set_page_config(page_title="Análise de Notícias", layout="wide")
+st.set_page_config(page_title="Análise de Notícias", layout="wide")
 
 # Fontes de RSS
 RSS_FEEDS = [
