@@ -55,58 +55,70 @@ def display_distribution(news_df):
     news_df['date_parsed'] = pd.to_datetime(news_df['date'], errors='coerce')
     news_df = news_df.dropna(subset=['date_parsed'])
     
+    # Extrair dia, mês, ano
     news_df['day'] = news_df['date_parsed'].dt.date
     news_df['month'] = news_df['date_parsed'].dt.to_period('M')
     news_df['year'] = news_df['date_parsed'].dt.to_period('Y')
 
-    # Gráfico de distribuição por dia
-    st.header("Distribuição Temporal de Notícias")
-    
-    # Por dia
-    day_counts = news_df['day'].value_counts().sort_index()
-    st.subheader("Distribuição por Dia")
-    day_counts.plot(kind="bar", color="skyblue", alpha=0.7)
-    plt.title("Distribuição de Notícias por Dia")
-    plt.xlabel("Data")
-    plt.ylabel("Número de Notícias")
-    plt.xticks(rotation=45)
+    # Controle de seleção de distribuição
+    distribution_type = st.selectbox("Selecione a distribuição", ("Dia", "Mês", "Ano"))
+
+    # Gráfico de distribuição selecionada
+    if distribution_type == "Dia":
+        day_counts = news_df['day'].value_counts().sort_index()
+        title = "Distribuição de Notícias por Dia"
+        xlabel = "Data"
+        ylabel = "Número de Notícias"
+        day_counts.plot(kind="bar", color="skyblue", alpha=0.7)
+        
+    elif distribution_type == "Mês":
+        month_counts = news_df['month'].value_counts().sort_index()
+        title = "Distribuição de Notícias por Mês"
+        xlabel = "Mês"
+        ylabel = "Número de Notícias"
+        month_counts.plot(kind="bar", color="orange", alpha=0.7)
+        
+    else:
+        year_counts = news_df['year'].value_counts().sort_index()
+        title = "Distribuição de Notícias por Ano"
+        xlabel = "Ano"
+        ylabel = "Número de Notícias"
+        year_counts.plot(kind="bar", color="green", alpha=0.7)
+
+    plt.title(title)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
     st.pyplot(plt)
 
-    # Por mês
-    month_counts = news_df['month'].value_counts().sort_index()
-    st.subheader("Distribuição por Mês")
-    month_counts.plot(kind="bar", color="orange", alpha=0.7)
-    plt.title("Distribuição de Notícias por Mês")
-    plt.xlabel("Mês")
-    plt.ylabel("Número de Notícias")
-    st.pyplot(plt)
+# Função para gerar a nuvem de palavras com base na palavra-chave
+def generate_wordcloud(news_df, keywords):
+    # Filtrar as notícias por palavras-chave
+    keyword_list = [kw.strip().lower() for kw in keywords.split(",")]
+    filtered_df = news_df[
+        news_df["title"].str.lower().str.contains("|".join(keyword_list)) |
+        news_df["summary"].str.lower().str.contains("|".join(keyword_list))
+    ]
 
-    # Por ano
-    year_counts = news_df['year'].value_counts().sort_index()
-    st.subheader("Distribuição por Ano")
-    year_counts.plot(kind="bar", color="green", alpha=0.7)
-    plt.title("Distribuição de Notícias por Ano")
-    plt.xlabel("Ano")
-    plt.ylabel("Número de Notícias")
-    st.pyplot(plt)
-
-    # Nuvem de palavras
-    st.subheader("Nuvem de Palavras")
-    all_text = " ".join(news_df["title"].fillna("") + " " + news_df["summary"].fillna(""))
+    # Criar a nuvem de palavras
+    all_text = " ".join(filtered_df["title"].fillna("") + " " + filtered_df["summary"].fillna(""))
     wordcloud = WordCloud(width=800, height=400, background_color="white").generate(all_text)
+    
+    st.subheader("Nuvem de Palavras")
     plt.imshow(wordcloud, interpolation="bilinear")
     plt.axis("off")
     st.pyplot(plt)
 
-    # Gráfico de Sentimentos
-    st.subheader("Análise de Sentimentos")
+# Função para exibir análise de sentimentos
+def display_sentiment_analysis(news_df):
     sentiment_counts = news_df["sentiment"].value_counts()
+    st.subheader("Análise de Sentimentos")
     st.bar_chart(sentiment_counts)
 
 # Função principal para criar o dashboard
 def main():
     st.title("Dashboard de Notícias - Métodos de Pagamento")
     
+    # Carregar notícias
     news_data = fetch_news_from_feeds(RSS_FEEDS)
     news_data["date_parsed"] = pd.to_datetime(news_data["date"], errors='coerce')
 
@@ -124,7 +136,7 @@ def main():
     # Garantindo que news_data["date_parsed"] esteja no formato correto
     news_data["date_parsed"] = pd.to_datetime(news_data["date"], errors='coerce')
 
-    # Agora pode-se aplicar o filtro
+    # Aplicar filtro
     filtered_data = news_data[
         (news_data["source"].isin(sources)) &  
         (news_data["date_parsed"] >= start_date) &  
@@ -154,6 +166,8 @@ def main():
 
     with tab2:
         display_distribution(filtered_data)
+        generate_wordcloud(filtered_data, keywords)
+        display_sentiment_analysis(filtered_data)
 
 if __name__ == "__main__":
     main()
