@@ -9,8 +9,11 @@ from textblob import TextBlob
 # Fontes de RSS
 RSS_FEEDS = [
     {"name": "G1 Economia", "url": "https://g1.globo.com/rss/g1/economia/"},
-    {"name": "InfoMoney", "url": "https://www.infomoney.com.br/feed/"},
-    {"name": "Banco Central do Brasil", "url": "https://www.bcb.gov.br/api/feed/sitebcb/sitefeeds/noticias?"},
+    {"name": "BCB - Notas técnicas", "url": "https://www.bcb.gov.br/api/feed/sitebcb/sitefeeds/notastecnicas"},
+    {"name": "BCB - Notícias", "url": "https://www.bcb.gov.br/api/feed/sitebcb/sitefeeds/noticias?ano=2024"},
+    {"name": "BCB - Notas imprensa", "url": "https://www.bcb.gov.br/api/feed/sitebcb/sitefeeds/notasImprensa?ano=2021"},
+    {"name": "BCB - Estatísticas monetárias e de crédito", "url": "https://www.bcb.gov.br/api/feed/sitebcb/sitefeeds/historicomonetariascredito"},
+    {"name": "Relatório de Pesquisa em Economia e Finanças", "url": "https://www.bcb.gov.br/api/feed/sitebcb/sitefeeds/relatorioeconofinancas"},
     {"name": "CreditCards.com", "url": "https://www.creditcards.com/news/rss/"},
     {"name": "Finsiders Brasil", "url": "https://finsidersbrasil.com.br/feed"},
 ]
@@ -141,7 +144,7 @@ def main():
         # Aplicar filtros
         news_data["date_parsed"] = pd.to_datetime(news_data["date"], errors='coerce')
         filtered_data = news_data[
-            (news_data["source"].isin(sources)) &  # Filtro por fontes
+            #(news_data["source"].isin(sources)) &  # Filtro por fontes
             (news_data["date_parsed"].dt.date >= start_date) &  # Filtro por data inicial
             (news_data["date_parsed"].dt.date <= end_date)  # Filtro por data final
         ]
