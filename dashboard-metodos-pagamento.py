@@ -6,14 +6,14 @@ from wordcloud import WordCloud
 from datetime import datetime
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
-# Configuração da página (mover para o início do código)
+# Configuração da página
 st.set_page_config(page_title="Análise de Notícias", layout="wide")
 
 # Fontes de RSS
 RSS_FEEDS = [
-    {"name": "Google Tecnologia", "url": "https://news.google.com/rss/headlines/section/topic/TECHNOLOGY?hl=pt-BR&gl=BR&ceid=BR:pt-150"},
-    {"name": "Google Economia", "url": "https://news.google.com/rss/headlines/section/topic/BUSINESS?hl=pt-BR&gl=BR&ceid=BR:pt-150"},
-    {"name": "Google Finanças", "url": "https://news.google.com/rss/headlines/section/topic/FINANCE?hl=pt-BR&gl=BR&ceid=BR:pt-150"},
+    {"name": "Tecnologia", "url": "https://news.google.com/rss/headlines/section/topic/TECHNOLOGY?hl=pt-BR&gl=BR&ceid=BR:pt-150"},
+    {"name": "Economia", "url": "https://news.google.com/rss/headlines/section/topic/BUSINESS?hl=pt-BR&gl=BR&ceid=BR:pt-150"},
+    {"name": "Finanças", "url": "https://news.google.com/rss/headlines/section/topic/FINANCE?hl=pt-BR&gl=BR&ceid=BR:pt-150"},
     {"name": "BCB - Notas técnicas", "url": "https://www.bcb.gov.br/api/feed/sitebcb/sitefeeds/notastecnicas"},
     {"name": "BCB - Notícias", "url": "https://www.bcb.gov.br/api/feed/sitebcb/sitefeeds/noticias"},
     {"name": "BCB - Notas imprensa", "url": "https://www.bcb.gov.br/api/feed/sitebcb/sitefeeds/notasImprensa"},
@@ -93,16 +93,15 @@ def display_distribution(news_df):
 def display_sentiment_analysis(news_df):
     st.header("Análise de Sentimentos das Notícias")
     sentiment_counts = news_df["sentiment"].value_counts()
-    display_sentiment_pie_chart(sentiment_counts)
+    display_sentiment_bar_chart(sentiment_counts)
 
-# Função para exibir o gráfico de pizza da análise de sentimentos
-def display_sentiment_pie_chart(sentiment_counts):
-    sentiment_labels = sentiment_counts.index
-    sentiment_values = sentiment_counts.values
-
+# Função para exibir o gráfico de barras da análise de sentimentos
+def display_sentiment_bar_chart(sentiment_counts):
     fig, ax = plt.subplots(figsize=(7, 7))
-    ax.pie(sentiment_values, labels=sentiment_labels, autopct='%1.1f%%', startangle=90, colors=["#FF6666", "#66FF66", "#FFD700"])
-    ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+    sentiment_counts.plot(kind="bar", color=["#FF6666", "#66FF66", "#FFD700"], ax=ax)
+    ax.set_title("Análise de Sentimentos")
+    ax.set_ylabel("Número de Notícias")
+    ax.set_xlabel("Sentimentos")
     st.pyplot(fig)
 
 # Função para categorizar as notícias
@@ -164,20 +163,16 @@ def main():
         tab1, tab2 = st.tabs(["Notícias", "Distribuição Temporal"])
 
         with tab1:
-            if not top_news.empty:
-                display_news(top_news)
-            else:
-                st.write("Nenhuma notícia encontrada para os filtros aplicados.")
+            display_news(top_news)
+            display_sentiment_analysis(top_news)
+            display_categories(top_news)
 
         with tab2:
-            if not filtered_data.empty:
-                display_distribution(filtered_data)
-                display_sentiment_analysis(filtered_data)
-                display_categories(filtered_data)
-            else:
-                st.write("Nenhuma informação para exibir na distribuição temporal.")
+            display_distribution(filtered_data)
+            
     else:
-        st.write("Não foi possível buscar as notícias.")
+        st.error("Não foi possível carregar as notícias.")
 
+# Execução do app
 if __name__ == "__main__":
     main()
