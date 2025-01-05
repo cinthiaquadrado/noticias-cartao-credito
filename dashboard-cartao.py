@@ -33,12 +33,12 @@ def fetch_news_from_feeds(feeds):
 
 # Função para exibir as notícias no dashboard
 def display_news(news_df):
-    st.header("Notícias sobre Cartões de Crédito e Mercado de Crédito")
+    #st.header("Notícias sobre Cartões de Crédito e Mercado de Crédito")
     for _, row in news_df.iterrows():
         st.markdown(f"### [{row['title']}]({row['link']})")
         st.markdown(f"**Data:** {row['date']}")
         st.markdown(f"**Fonte:** {row['source']}")
-        st.markdown(f"**Resumo:** {row['summary']}")
+        #st.markdown(f"**Resumo:** {row['summary']}")
         st.write("---")
 
 # Função para exibir a distribuição das notícias
