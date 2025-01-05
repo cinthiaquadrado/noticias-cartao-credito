@@ -10,10 +10,9 @@ from textblob import TextBlob
 RSS_FEEDS = [
     {"name": "G1 Economia", "url": "https://g1.globo.com/rss/g1/economia/"},
     {"name": "InfoMoney", "url": "https://www.infomoney.com.br/feed/"},
-    {"name": "Banco Central do Brasil", "url": "https://www.bcb.gov.br/acessoinformacao/rss"},
+    {"name": "Banco Central do Brasil", "url": "https://www.bcb.gov.br/api/feed/sitebcb/sitefeeds/noticias?"},
     {"name": "CreditCards.com", "url": "https://www.creditcards.com/news/rss/"},
     {"name": "Finsiders Brasil", "url": "https://finsidersbrasil.com.br/feed"},
-    {"name": "FEBRABAN", "url": "https://portal.febraban.org.br/Noticias"}
 ]
 
 # Função para buscar e processar as notícias de múltiplas fontes
@@ -21,16 +20,16 @@ def fetch_news_from_feeds(feeds):
     all_news = []
     for feed in feeds:
         feed_data = feedparser.parse(feed["url"])
-        
-        # Adicionar log para verificar os dados do feed
-        st.write(f"Processando feed: {feed['name']}")
-        st.write(f"Link: {feed['url']}")
-        st.write("Entradas do feed:", len(feed_data.entries))  # Verifica o número de entradas
-        
+
+        # Removido os logs para o dashboard
+        # st.write(f"Processando feed: {feed['name']}")
+        # st.write(f"Link: {feed['url']}")
+        # st.write("Entradas do feed:", len(feed_data.entries))  # Verifica o número de entradas
+
         for entry in feed_data.entries:
-            # Log de depuração para cada entrada
-            st.write(f"Título: {entry.get('title', 'Sem título')}")
-            st.write(f"Link: {entry.get('link', 'Sem link')}")
+            # Removido o log de depuração para cada entrada
+            # st.write(f"Título: {entry.get('title', 'Sem título')}")
+            # st.write(f"Link: {entry.get('link', 'Sem link')}")
 
             all_news.append({
                 "title": entry.get("title", "Sem título"),
@@ -40,6 +39,7 @@ def fetch_news_from_feeds(feeds):
                 "source": feed["name"]
             })
     return pd.DataFrame(all_news)
+
 
 # Função para análise de sentimentos
 def analyze_sentiment(text):
@@ -85,7 +85,7 @@ def display_distribution(news_df):
     st.pyplot(plt)
 
     # Nuvem de palavras
-    st.subheader("Nuvem de Palavras dos Títulos e Resumos")
+    st.subheader("Nuvem de Palavras")
     all_text = " ".join(news_df["title"].fillna("") + " " + news_df["summary"].fillna(""))
     wordcloud = WordCloud(width=800, height=400, background_color="white").generate(all_text)
     plt.figure(figsize=(10, 5))
@@ -132,7 +132,7 @@ def main():
     if not news_data.empty:
         # Filtros no menu lateral
         st.sidebar.header("Filtros")
-        sources = st.sidebar.multiselect("Selecione a fonte", options=news_data["source"].unique(), default=news_data["source"].unique())
+        #sources = st.sidebar.multiselect("Selecione a fonte", options=news_data["source"].unique(), default=news_data["source"].unique())
         start_date = st.sidebar.date_input("Data inicial", value=datetime(2023, 1, 1))
         end_date = st.sidebar.date_input("Data final", value=datetime.now())
         keywords = st.sidebar.text_area("Palavras-chave (separadas por vírgulas)", value="cartão de crédito, cartões de crédito, mercado de crédito")
@@ -177,5 +177,5 @@ def main():
 
 # Executar o Streamlit
 if __name__ == "__main__":
-    st.set_page_config(page_title="Análise de Notícias Financeiras", layout="wide")
+    st.set_page_config(page_title="Análise de Notícias", layout="wide")
     main()
