@@ -1,87 +1,61 @@
 import feedparser
 import pandas as pd
 import streamlit as st
-from datetime import datetime
 
-# Função para buscar notícias de um feed RSS
-def fetch_rss_news(feed_url):
-    feed = feedparser.parse(feed_url)
-    news = []
-    for entry in feed.entries:
-        news.append({
-            "title": entry.title,
-            "link": entry.link,
-            "published": entry.published if "published" in entry else "Data desconhecida",
-            "summary": entry.summary if "summary" in entry else "Sem resumo disponível"
-        })
-    return news
+# Lista de fontes RSS
+RSS_FEEDS = [
+    "https://g1.globo.com/rss/g1/economia/",
+    "https://exame.com/feed/",
+    "https://economia.estadao.com.br/rss/ultimas",
+    "https://www.infomoney.com.br/feed/",
+    "https://valor.globo.com/rss/",
+    "https://www.creditcards.com/news/rss/",
+    "https://www.forbes.com/finance/feed/"
+]
 
-# Processar os dados em um DataFrame
-def process_news_data(news, keywords):
-    df = pd.DataFrame(news)
+# Função para buscar e processar as notícias de múltiplas fontes
+def fetch_news_from_feeds(feeds):
+    all_news = []
+    for feed_url in feeds:
+        feed = feedparser.parse(feed_url)
+        for entry in feed.entries:
+            all_news.append({
+                "title": entry.get("title", "Sem título"),
+                "date": entry.get("published", "Data desconhecida"),
+                "summary": entry.get("summary", "Sem resumo"),
+                "link": entry.get("link", "Sem link")
+            })
+    return pd.DataFrame(all_news)
 
-    # Converter a data para datetime (se possível)
-    df["published"] = pd.to_datetime(df["published"], errors="coerce")
+# Função para exibir as notícias no dashboard
+def display_news(news_df):
+    st.header("Notícias sobre Cartões de Crédito e Mercado de Crédito")
+    for _, row in news_df.iterrows():
+        st.markdown(f"### [{row['title']}]({row['link']})")
+        st.markdown(f"**Data:** {row['date']}")
+        st.markdown(f"**Resumo:** {row['summary']}")
+        st.write("---")
 
-    # Filtrar notícias por palavras-chave
-    keyword_filter = df["title"].str.contains("|".join(keywords), case=False, na=False) | \
-                     df["summary"].str.contains("|".join(keywords), case=False, na=False)
-    df = df[keyword_filter]
-
-    # Ordenar por data mais recente
-    df = df.sort_values("published", ascending=False)
-    return df
-
-# Criar um dashboard com Streamlit
-def create_dashboard(news_df):
-    st.title("Dashboard de Notícias sobre Cartões de Crédito")
-    
-    # Mostrar as últimas notícias
-    st.header("Notícias Recentes")
-    if not news_df.empty:
-        for _, row in news_df.iterrows():
-            st.subheader(row["title"])
-            st.write(f"Publicado em: {row['published'].strftime('%Y-%m-%d %H:%M:%S')}" if pd.notnull(row["published"]) else "Data desconhecida")
-            st.write(f"*Resumo:* {row['summary']}")
-            st.write(f"[Leia mais]({row['link']})\n")
-            st.markdown("---")  # Linha separadora entre notícias
-    else:
-        st.write("Nenhuma notícia encontrada para as palavras-chave selecionadas.")
-
-    # Exibir dados em tabela
-    st.header("Tabela de Notícias")
-    st.dataframe(news_df)
-
-# Fluxo principal
+# Dashboard
 def main():
+    st.title("Dashboard de Notícias - Cartões de Crédito")
     st.sidebar.title("Configurações")
-    st.sidebar.write("Escolha o feed RSS e defina palavras-chave.")
 
-    # URL dos feeds RSS
-    feeds = {
-        "G1 Economia": "https://g1.globo.com/rss/g1/economia/",
-        "Exame Negócios": "https://exame.com/feed/",
-        "Estadão Economia": "https://economia.estadao.com.br/rss/ultimas"
-    }
+    # Atualização manual do feed
+    if st.sidebar.button("Atualizar Notícias"):
+        st.sidebar.write("Buscando as últimas notícias...")
+        news_data = fetch_news_from_feeds(RSS_FEEDS)
+        st.sidebar.success("Notícias atualizadas com sucesso!")
+    else:
+        news_data = fetch_news_from_feeds(RSS_FEEDS)
 
-    # Seleção de feed no menu lateral
-    feed_name = st.sidebar.selectbox("Selecionar feed", list(feeds.keys()))
-    feed_url = feeds[feed_name]
+    # Exibir notícias no dashboard
+    if not news_data.empty:
+        display_news(news_data)
+    else:
+        st.write("Nenhuma notícia encontrada.")
 
-    # Definir palavras-chave para filtragem
-    default_keywords = ["cartão de crédito", "cartões de crédito", "mercado de crédito"]
-    keywords = st.sidebar.text_input(
-        "Palavras-chave (separadas por vírgula)", 
-        value=", ".join(default_keywords)
-    ).split(", ")
-
-    st.sidebar.write(f"Buscando notícias do feed: {feed_name}")
-    news = fetch_rss_news(feed_url)
-    news_df = process_news_data(news, keywords)
-
-    create_dashboard(news_df)
-
-# Executar a aplicação
+# Executar o Streamlit
 if __name__ == "__main__":
     st.set_page_config(layout="wide")
     main()
