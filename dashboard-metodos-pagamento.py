@@ -72,7 +72,6 @@ def display_distribution(news_df):
     plt.axis("off")
     st.pyplot(plt)
 
-# Função principal para criar o dashboard
 def main():
     st.title("Dashboard de Notícias - Métodos de Pagamento")
     
@@ -86,10 +85,19 @@ def main():
     end_date = st.sidebar.date_input("Data final", value=datetime.now())
     keywords = st.sidebar.text_area("Palavras-chave", value="")
 
-    # Filtro por data e fonte
-    filtered_data = news_data[(news_data["source"].isin(sources)) & 
-                              (news_data["date_parsed"] >= start_date) & 
-                              (news_data["date_parsed"] <= end_date)]
+    # Convertendo start_date e end_date para datetime
+    start_date = pd.to_datetime(start_date)
+    end_date = pd.to_datetime(end_date)
+
+    # Garantindo que news_data["date_parsed"] esteja no formato correto
+    news_data["date_parsed"] = pd.to_datetime(news_data["date"], errors='coerce')
+
+    # Agora pode-se aplicar o filtro
+    filtered_data = news_data[
+        (news_data["source"].isin(sources)) &  
+        (news_data["date_parsed"] >= start_date) &  
+        (news_data["date_parsed"] <= end_date)
+    ]
 
     # Filtro por palavras-chave
     if keywords:
