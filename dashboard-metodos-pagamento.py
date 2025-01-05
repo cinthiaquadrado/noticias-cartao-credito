@@ -31,21 +31,28 @@ def fetch_news_from_feeds(feeds):
             })
     return pd.DataFrame(all_news)
 
-# Função para análise de sentimentos com VADER
+# Função para análise de sentimentos usando o Vader
 def analyze_sentiment_vader(text):
-    if not text or pd.isnull(text):  # Verifica se o texto está vazio ou é nulo
-        return "Neutro"  # Retorna "Neutro" se o texto for vazio ou nulo
-    try:
-        analyzer = SentimentIntensityAnalyzer()
-        sentiment_score = analyzer.polarity_scores(text)
-        if sentiment_score['compound'] > 0.05:
-            return "Positivo"
-        elif sentiment_score['compound'] < -0.05:
-            return "Negativo"
-        else:
-            return "Neutro"
-    except Exception as e:
-        return "Neutro"  # Caso ocorra algum erro, retorna "Neutro"
+    analyzer = SentimentIntensityAnalyzer()
+    sentiment_score = analyzer.polarity_scores(text)["compound"]
+    if sentiment_score >= 0.05:
+        return "Positivo"
+    elif sentiment_score <= -0.05:
+        return "Negativo"
+    else:
+        return "Neutro"
+
+# Função para exibir a análise de sentimentos
+def display_sentiment_analysis(news_df):
+    sentiment_counts = news_df['sentiment'].value_counts()
+    fig, ax = plt.subplots(figsize=(8, 6))
+    sentiment_counts.plot(kind="bar", color=["skyblue", "orange", "lightgreen"], ax=ax)
+    
+    ax.set_title("Distribuição de Sentimentos nas Notícias")
+    ax.set_xlabel("Sentimento")
+    ax.set_ylabel("Número de Notícias")
+    
+    st.pyplot(fig)  # Passando explicitamente o 'fig' para o st.pyplot()
 
 # Função para exibir as notícias no dashboard
 def display_news(news_df):
@@ -101,20 +108,15 @@ def generate_wordcloud(keywords, filtered_data):
         st.warning("Por favor, insira palavras-chave para gerar a nuvem de palavras.")
         return
     st.write("Nuvem de Palavras")
-    wordcloud = WordCloud(width=800, height=400).generate(keywords)
-    plt.figure(figsize=(10, 5))
-    plt.imshow(wordcloud, interpolation='bilinear')
-    plt.axis('off')
-    st.pyplot()
-
-    # Criar a nuvem de palavras
+    
+    # Criando a nuvem de palavras
     all_text = " ".join(filtered_data["title"].fillna("") + " " + filtered_data["summary"].fillna(""))
     wordcloud = WordCloud(width=800, height=400, background_color="white").generate(all_text)
     
-    st.subheader("Nuvem de Palavras")
-    plt.imshow(wordcloud, interpolation="bilinear")
-    plt.axis("off")
-    st.pyplot(plt)
+    fig, ax = plt.subplots(figsize=(10, 5))
+    ax.imshow(wordcloud, interpolation="bilinear")
+    ax.axis("off")
+    st.pyplot(fig)
 
 # Função principal para criar o dashboard
 def main():
