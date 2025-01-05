@@ -50,6 +50,19 @@ def analyze_sentiment_vader(text):
     else:
         return "Neutro"
 
+# Função segura para análise de sentimentos, lidando com valores nulos e tipos de dados
+def safe_analyze_sentiment(row):
+    try:
+        # Garantir que as colunas 'title' e 'summary' não sejam nulas e sejam do tipo str
+        title = str(row['title'] or "")
+        summary = str(row['summary'] or "")
+        
+        # Concatenar title e summary antes de passar para a função de análise de sentimentos
+        return analyze_sentiment_vader(title + " " + summary)
+    except Exception as e:
+        # Em caso de erro, retornar uma string indicando erro
+        return "Erro"
+
 # Função para exibir as notícias no dashboard
 def display_news(news_df):
     for _, row in news_df.iterrows():
@@ -154,26 +167,24 @@ def main():
                 filtered_data["summary"].str.lower().str.contains("|".join(keyword_list))
             ]
 
-        filtered_data["sentiment"] = filtered_data.apply(lambda row: analyze_sentiment_vader(row['title'] + " " + row['summary']), axis=1)
+        # Aplique a função de análise de sentimentos com a função segura
+        filtered_data["sentiment"] = filtered_data.apply(safe_analyze_sentiment, axis=1)
 
         filtered_data = filtered_data.sort_values(by="date_parsed", ascending=False)
 
         top_news = filtered_data.head(15)
 
         # Criar as abas
-        tab1, tab2 = st.tabs(["Notícias", "Distribuição Temporal"])
+        tab1, tab2 = st.tabs(["Notícias", "Análise"])
 
         with tab1:
             display_news(top_news)
-            display_sentiment_analysis(top_news)
-            display_categories(top_news)
+            display_distribution(filtered_data)
+            display_categories(filtered_data)
 
         with tab2:
-            display_distribution(filtered_data)
-            
-    else:
-        st.error("Não foi possível carregar as notícias.")
+            display_sentiment_analysis(filtered_data)
 
-# Execução do app
+# Chama a função principal
 if __name__ == "__main__":
     main()
