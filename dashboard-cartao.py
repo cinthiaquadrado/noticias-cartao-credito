@@ -10,7 +10,7 @@ from textblob import TextBlob
 RSS_FEEDS = [
     {"name": "G1 Economia", "url": "https://g1.globo.com/rss/g1/economia/"},
     {"name": "InfoMoney", "url": "https://www.infomoney.com.br/feed/"},
-    {"name": "Banco Central do Brasil", "url": "https://www.bcb.gov.br/api/feed/sitebcb/sitefeeds/noticias?"},
+    {"name": "Banco Central do Brasil", "url": "https://www.bcb.gov.br/acessoinformacao/rss"},
     {"name": "CreditCards.com", "url": "https://www.creditcards.com/news/rss/"},
     {"name": "Finsiders Brasil", "url": "https://finsidersbrasil.com.br/feed"},
     {"name": "FEBRABAN", "url": "https://portal.febraban.org.br/Noticias"}
@@ -31,7 +31,7 @@ def fetch_news_from_feeds(feeds):
             # Log de depuração para cada entrada
             st.write(f"Título: {entry.get('title', 'Sem título')}")
             st.write(f"Link: {entry.get('link', 'Sem link')}")
-            
+
             all_news.append({
                 "title": entry.get("title", "Sem título"),
                 "date": entry.get("published", "Data desconhecida"),
