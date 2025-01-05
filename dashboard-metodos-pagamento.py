@@ -93,11 +93,14 @@ def display_distribution(news_df):
 # Função para gerar a nuvem de palavras com base na palavra-chave
 def generate_wordcloud(news_df, keywords):
     # Filtrar as notícias por palavras-chave
-    keyword_list = [kw.strip().lower() for kw in keywords.split(",")]
-    filtered_df = news_df[
-        news_df["title"].str.lower().str.contains("|".join(keyword_list)) |
-        news_df["summary"].str.lower().str.contains("|".join(keyword_list))
-    ]
+    if keywords:
+        keyword_list = [kw.strip().lower() for kw in keywords.split(",")]
+        filtered_df = news_df[
+            news_df["title"].str.lower().str.contains("|".join(keyword_list)) |
+            news_df["summary"].str.lower().str.contains("|".join(keyword_list))
+        ]
+    else:
+        filtered_df = news_df
 
     # Criar a nuvem de palavras
     all_text = " ".join(filtered_df["title"].fillna("") + " " + filtered_df["summary"].fillna(""))
@@ -107,12 +110,6 @@ def generate_wordcloud(news_df, keywords):
     plt.imshow(wordcloud, interpolation="bilinear")
     plt.axis("off")
     st.pyplot(plt)
-
-# Função para exibir análise de sentimentos
-def display_sentiment_analysis(news_df):
-    sentiment_counts = news_df["sentiment"].value_counts()
-    st.subheader("Análise de Sentimentos")
-    st.bar_chart(sentiment_counts)
 
 # Função principal para criar o dashboard
 def main():
@@ -166,8 +163,9 @@ def main():
 
     with tab2:
         display_distribution(filtered_data)
-        generate_wordcloud(keywords)
+        generate_wordcloud(filtered_data, keywords)  # Passando a palavra-chave para a função
         display_sentiment_analysis(filtered_data)
 
 if __name__ == "__main__":
     main()
+
