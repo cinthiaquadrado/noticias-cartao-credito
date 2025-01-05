@@ -13,8 +13,8 @@ st.set_page_config(page_title="Análise de Notícias", layout="wide")
 RSS_FEEDS = [
     {"name": "G1 Economia", "url": "https://g1.globo.com/rss/g1/economia/"},
     {"name": "BCB - Notas técnicas", "url": "https://www.bcb.gov.br/api/feed/sitebcb/sitefeeds/notastecnicas"},
-    {"name": "BCB - Notícias", "url": "https://www.bcb.gov.br/api/feed/sitebcb/sitefeeds/noticias?ano=2024"},
-    {"name": "BCB - Notas imprensa", "url": "https://www.bcb.gov.br/api/feed/sitebcb/sitefeeds/notasImprensa?ano=2021"},
+    {"name": "BCB - Notícias", "url": "https://www.bcb.gov.br/api/feed/sitebcb/sitefeeds/noticias"},
+    {"name": "BCB - Notas imprensa", "url": "https://www.bcb.gov.br/api/feed/sitebcb/sitefeeds/notasImprensa"},
     {"name": "BCB - Estatísticas monetárias e de crédito", "url": "https://www.bcb.gov.br/api/feed/sitebcb/sitefeeds/historicomonetariascredito"},
     {"name": "Relatório de Pesquisa em Economia e Finanças", "url": "https://www.bcb.gov.br/api/feed/sitebcb/sitefeeds/relatorioeconofinancas"},
     {"name": "CreditCards.com", "url": "https://www.creditcards.com/news/rss/"},
@@ -118,7 +118,7 @@ def display_categories(news_df):
 
 # Função principal para criar o dashboard
 def main():
-    st.title("Dashboard de Notícias - Cartões de Crédito")
+    st.title("Dashboard de Notícias - Métodos de Pagamento")
     
     news_data = fetch_news_from_feeds(RSS_FEEDS)
 
