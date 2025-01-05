@@ -1,5 +1,5 @@
 # Configuração da página (mover para o início do código)
-st.set_page_config(page_title="Análise de Notícias", layout="wide")
+streamlit.set_page_config(page_title="Análise de Notícias", layout="wide")
 
 # Fontes de RSS
 RSS_FEEDS = [
