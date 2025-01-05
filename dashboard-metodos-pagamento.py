@@ -12,6 +12,7 @@ st.set_page_config(page_title="Análise de Notícias", layout="wide")
 # Fontes de RSS
 RSS_FEEDS = [
     {"name": "G1 Economia", "url": "https://g1.globo.com/rss/g1/economia/"},
+    {"name": "Google News", "url": "https://news.google.com/rss?hl=pt-BR&gl=BR&ceid=BR:pt-150"},
     {"name": "BCB - Notas técnicas", "url": "https://www.bcb.gov.br/api/feed/sitebcb/sitefeeds/notastecnicas"},
     {"name": "BCB - Notícias", "url": "https://www.bcb.gov.br/api/feed/sitebcb/sitefeeds/noticias"},
     {"name": "BCB - Notas imprensa", "url": "https://www.bcb.gov.br/api/feed/sitebcb/sitefeeds/notasImprensa"},
