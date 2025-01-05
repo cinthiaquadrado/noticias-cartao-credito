@@ -31,16 +31,21 @@ def fetch_news_from_feeds(feeds):
             })
     return pd.DataFrame(all_news)
 
-# Função para exibir análise de sentimentos
-def display_sentiment_analysis(news_df):
-    # Verificar se há dados suficientes para análise
-    if 'sentiment' in news_df.columns and not news_df['sentiment'].isnull().all():
-        sentiment_counts = news_df["sentiment"].value_counts()
-        st.subheader("Análise de Sentimentos")
-        st.bar_chart(sentiment_counts)
-    else:
-        st.subheader("Análise de Sentimentos")
-        st.write("Não há dados de sentimento suficientes para exibição.")
+# Função para análise de sentimentos com VADER
+def analyze_sentiment_vader(text):
+    if not text or pd.isnull(text):  # Verifica se o texto está vazio ou é nulo
+        return "Neutro"  # Retorna "Neutro" se o texto for vazio ou nulo
+    try:
+        analyzer = SentimentIntensityAnalyzer()
+        sentiment_score = analyzer.polarity_scores(text)
+        if sentiment_score['compound'] > 0.05:
+            return "Positivo"
+        elif sentiment_score['compound'] < -0.05:
+            return "Negativo"
+        else:
+            return "Neutro"
+    except Exception as e:
+        return "Neutro"  # Caso ocorra algum erro, retorna "Neutro"
 
 # Função para exibir as notícias no dashboard
 def display_news(news_df):
@@ -163,9 +168,8 @@ def main():
 
     with tab2:
         display_distribution(filtered_data)
-        generate_wordcloud(filtered_data, keywords)  # Passando a palavra-chave para a função
+        generate_wordcloud(keywords)
         display_sentiment_analysis(filtered_data)
 
 if __name__ == "__main__":
     main()
-
