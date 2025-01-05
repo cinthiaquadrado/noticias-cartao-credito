@@ -63,13 +63,13 @@ def display_distribution(news_df):
     news_df['date_parsed'] = pd.to_datetime(news_df['date'], errors='coerce')
     news_df['date_parsed'] = news_df['date_parsed'].fillna(datetime.now())
 
-    group_by = st.selectbox("Agrupar por:", ["Dia", "Semana", "Mês"])
+    group_by = st.selectbox("Agrupar por:", ["Dia", "Mês", "Ano"])
     if group_by == "Dia":
         date_counts = news_df['date_parsed'].dt.date.value_counts().sort_index()
-    elif group_by == "Semana":
-        date_counts = news_df['date_parsed'].dt.to_period("W").value_counts().sort_index()
-    else:
+    elif group_by == "Mês":
         date_counts = news_df['date_parsed'].dt.to_period("M").value_counts().sort_index()
+    else:
+        date_counts = news_df['date_parsed'].dt.to_period("A").value_counts().sort_index()
 
     plt.figure(figsize=(10, 6))
     date_counts.plot(kind="bar", color="skyblue", alpha=0.7)
