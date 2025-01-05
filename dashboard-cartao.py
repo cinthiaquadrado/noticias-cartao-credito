@@ -24,7 +24,17 @@ def fetch_news_from_feeds(feeds):
     all_news = []
     for feed in feeds:
         feed_data = feedparser.parse(feed["url"])
+        
+        # Adicionar log para verificar os dados do feed
+        st.write(f"Processando feed: {feed['name']}")
+        st.write(f"Link: {feed['url']}")
+        st.write("Entradas do feed:", len(feed_data.entries))  # Verifica o número de entradas
+        
         for entry in feed_data.entries:
+            # Log de depuração para cada entrada
+            st.write(f"Título: {entry.get('title', 'Sem título')}")
+            st.write(f"Link: {entry.get('link', 'Sem link')}")
+            
             all_news.append({
                 "title": entry.get("title", "Sem título"),
                 "date": entry.get("published", "Data desconhecida"),
@@ -170,5 +180,5 @@ def main():
 
 # Executar o Streamlit
 if __name__ == "__main__":
-    st.set_page_config(layout="wide")
+    st.set_page_config(page_title="Análise de Notícias Financeiras", layout="wide")
     main()
