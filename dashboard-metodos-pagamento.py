@@ -11,9 +11,9 @@ st.set_page_config(page_title="Análise de Notícias", layout="wide")
 
 # Fontes de RSS
 RSS_FEEDS = [
-    {"name": "Tecnologia", "url": "https://news.google.com/rss/headlines/section/topic/TECHNOLOGY?hl=pt-BR&gl=BR&ceid=BR:pt-150"},
-    {"name": "Economia", "url": "https://news.google.com/rss/headlines/section/topic/BUSINESS?hl=pt-BR&gl=BR&ceid=BR:pt-150"},
-    {"name": "Finanças", "url": "https://news.google.com/rss/headlines/section/topic/FINANCE?hl=pt-BR&gl=BR&ceid=BR:pt-150"},
+    {"name": "Google Tecnologia", "url": "https://news.google.com/rss/headlines/section/topic/TECHNOLOGY?hl=pt-BR&gl=BR&ceid=BR:pt-150"},
+    {"name": "Google Economia", "url": "https://news.google.com/rss/headlines/section/topic/BUSINESS?hl=pt-BR&gl=BR&ceid=BR:pt-150"},
+    {"name": "Google Finanças", "url": "https://news.google.com/rss/headlines/section/topic/FINANCE?hl=pt-BR&gl=BR&ceid=BR:pt-150"},
     {"name": "BCB - Notas técnicas", "url": "https://www.bcb.gov.br/api/feed/sitebcb/sitefeeds/notastecnicas"},
     {"name": "BCB - Notícias", "url": "https://www.bcb.gov.br/api/feed/sitebcb/sitefeeds/noticias"},
     {"name": "BCB - Notas imprensa", "url": "https://www.bcb.gov.br/api/feed/sitebcb/sitefeeds/notasImprensa"},
@@ -93,7 +93,17 @@ def display_distribution(news_df):
 def display_sentiment_analysis(news_df):
     st.header("Análise de Sentimentos das Notícias")
     sentiment_counts = news_df["sentiment"].value_counts()
-    st.bar_chart(sentiment_counts)
+    display_sentiment_pie_chart(sentiment_counts)
+
+# Função para exibir o gráfico de pizza da análise de sentimentos
+def display_sentiment_pie_chart(sentiment_counts):
+    sentiment_labels = sentiment_counts.index
+    sentiment_values = sentiment_counts.values
+
+    fig, ax = plt.subplots(figsize=(7, 7))
+    ax.pie(sentiment_values, labels=sentiment_labels, autopct='%1.1f%%', startangle=90, colors=["#FF6666", "#66FF66", "#FFD700"])
+    ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+    st.pyplot(fig)
 
 # Função para categorizar as notícias
 categories = {
@@ -145,7 +155,7 @@ def main():
                 filtered_data["summary"].str.lower().str.contains("|".join(keyword_list))
             ]
 
-        filtered_data["sentiment"] = filtered_data["title"].apply(analyze_sentiment_vader)
+        filtered_data["sentiment"] = filtered_data.apply(lambda row: analyze_sentiment_vader(row['title'] + " " + row['summary']), axis=1)
 
         filtered_data = filtered_data.sort_values(by="date_parsed", ascending=False)
 
