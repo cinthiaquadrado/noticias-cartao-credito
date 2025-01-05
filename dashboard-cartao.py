@@ -3,23 +3,56 @@ import pandas as pd
 import streamlit as st
 import matplotlib.pyplot as plt
 from wordcloud import WordCloud
-from datetime import datetime
+from datetime import datetime, timedelta
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 # Configuração da página (mover para o início do código)
 st.set_page_config(page_title="Análise de Notícias", layout="wide")
 
-# Fontes de RSS
+# Obter o ano atual e o mês atual
+ano_atual = datetime.now().year
+mes_atual = datetime.now().month
+
+# Obter o primeiro e o último dia do mês atual
+inicio_mes = datetime(ano_atual, mes_atual, 1)
+fim_mes = datetime(ano_atual, mes_atual + 1, 1) - timedelta(days=1)
+
+# Formatando as datas no formato YYYY-MM-DD
+start_date = inicio_mes.strftime('%Y-%m-%d')
+end_date = fim_mes.strftime('%Y-%m-%d')
+
+# Função para obter a URL com o filtro de data (ano, start_date, end_date)
+def obter_feed_url(base_url, ano=None, start_date=None, end_date=None):
+    params = []
+    if ano:
+        params.append(f"ano={ano}")
+    if start_date and end_date:
+        params.append(f"start_date={start_date}")
+        params.append(f"end_date={end_date}")
+    
+    # Se existirem parâmetros, adiciona à URL
+    if params:
+        return f"{base_url}?{'&'.join(params)}"
+    return base_url
+
+# Definindo os feeds com as URLs adaptadas para o ano e data dinâmica
 RSS_FEEDS = [
     {"name": "G1 Economia", "url": "https://g1.globo.com/rss/g1/economia/"},
     {"name": "BCB - Notas técnicas", "url": "https://www.bcb.gov.br/api/feed/sitebcb/sitefeeds/notastecnicas"},
-    {"name": "BCB - Notícias", "url": "https://www.bcb.gov.br/api/feed/sitebcb/sitefeeds/noticias?ano=2024"},
-    {"name": "BCB - Notas imprensa", "url": "https://www.bcb.gov.br/api/feed/sitebcb/sitefeeds/notasImprensa?ano=2021"},
+    {"name": "BCB - Notícias", "url": obter_feed_url("https://www.bcb.gov.br/api/feed/sitebcb/sitefeeds/noticias", ano=ano_atual)},
+    {"name": "BCB - Notas imprensa", "url": obter_feed_url("https://www.bcb.gov.br/api/feed/sitebcb/sitefeeds/notasImprensa", ano=ano_atual)},
     {"name": "BCB - Estatísticas monetárias e de crédito", "url": "https://www.bcb.gov.br/api/feed/sitebcb/sitefeeds/historicomonetariascredito"},
     {"name": "Relatório de Pesquisa em Economia e Finanças", "url": "https://www.bcb.gov.br/api/feed/sitebcb/sitefeeds/relatorioeconofinancas"},
     {"name": "CreditCards.com", "url": "https://www.creditcards.com/news/rss/"},
     {"name": "Finsiders Brasil", "url": "https://finsidersbrasil.com.br/feed"},
 ]
+
+# Exemplo: Configurar os feeds para pegar um intervalo de datas (ex: mês atual)
+RSS_FEEDS_MES = [
+    {"name": "BCB - Notícias", "url": obter_feed_url("https://www.bcb.gov.br/api/feed/sitebcb/sitefeeds/noticias", start_date=start_date, end_date=end_date)},
+    {"name": "BCB - Notas imprensa", "url": obter_feed_url("https://www.bcb.gov.br/api/feed/sitebcb/sitefeeds/notasImprensa", start_date=start_date, end_date=end_date)},
+]
+
 
 # Função para buscar e processar as notícias de múltiplas fontes
 def fetch_news_from_feeds(feeds):
@@ -136,36 +169,13 @@ def main():
             (news_data["date_parsed"].dt.date <= end_date)
         ]
 
-        if keywords:
-            keyword_list = [kw.strip().lower() for kw in keywords.split(",")]
-            filtered_data = filtered_data[ 
-                filtered_data["title"].str.lower().str.contains("|".join(keyword_list)) |
-                filtered_data["summary"].str.lower().str.contains("|".join(keyword_list))
-            ]
+        filtered_data["sentiment"] = filtered_data["summary"].apply(analyze_sentiment_vader)
 
-        filtered_data["sentiment"] = filtered_data["title"].apply(analyze_sentiment_vader)
+        display_news(filtered_data)
+        display_distribution(filtered_data)
+        display_sentiment_analysis(filtered_data)
+        display_categories(filtered_data)
 
-        filtered_data = filtered_data.sort_values(by="date_parsed", ascending=False)
-
-        top_news = filtered_data.head(15)
-
-        tab1, tab2 = st.tabs(["Notícias", "Distribuição Temporal"])
-
-        with tab1:
-            if not top_news.empty:
-                display_news(top_news)
-            else:
-                st.write("Nenhuma notícia encontrada para os filtros aplicados.")
-
-        with tab2:
-            if not filtered_data.empty:
-                display_distribution(filtered_data)
-                display_sentiment_analysis(filtered_data)
-                display_categories(filtered_data)
-            else:
-                st.write("Nenhuma informação para exibir na distribuição temporal.")
-    else:
-        st.write("Não foi possível buscar as notícias.")
-
+# Executar o aplicativo
 if __name__ == "__main__":
     main()
