@@ -2,6 +2,7 @@ import feedparser
 import pandas as pd
 import streamlit as st
 import matplotlib.pyplot as plt
+from wordcloud import WordCloud
 from datetime import datetime
 
 # Lista de fontes RSS
@@ -64,6 +65,15 @@ def display_distribution(news_df):
     plt.xticks(rotation=45)
     st.pyplot(plt)
 
+    # Nuvem de palavras
+    st.subheader("Nuvem de Palavras dos Títulos e Resumos")
+    all_text = " ".join(news_df["title"].fillna("") + " " + news_df["summary"].fillna(""))
+    wordcloud = WordCloud(width=800, height=400, background_color="white").generate(all_text)
+    plt.figure(figsize=(10, 5))
+    plt.imshow(wordcloud, interpolation="bilinear")
+    plt.axis("off")
+    st.pyplot(plt)
+
 # Função principal para criar o dashboard
 def main():
     st.title("Dashboard de Notícias - Cartões de Crédito")
@@ -79,6 +89,7 @@ def main():
         sources = st.sidebar.multiselect("Selecione a fonte", options=news_data["source"].unique(), default=news_data["source"].unique())
         start_date = st.sidebar.date_input("Data inicial", value=datetime(2023, 1, 1))
         end_date = st.sidebar.date_input("Data final", value=datetime.now())
+        keywords = st.sidebar.text_area("Palavras-chave (separadas por vírgulas)", value="cartão de crédito, cartões de crédito, mercado de crédito")
 
         # Aplicar filtros
         news_data["date_parsed"] = pd.to_datetime(news_data["date"], errors='coerce')
@@ -87,6 +98,14 @@ def main():
             (news_data["date_parsed"].dt.date >= start_date) &
             (news_data["date_parsed"].dt.date <= end_date)
         ]
+
+        # Filtro por palavras-chave
+        if keywords:
+            keyword_list = [kw.strip().lower() for kw in keywords.split(",")]
+            filtered_data = filtered_data[
+                filtered_data["title"].str.lower().str.contains("|".join(keyword_list)) |
+                filtered_data["summary"].str.lower().str.contains("|".join(keyword_list))
+            ]
 
         # Exibição de abas no dashboard
         tab1, tab2 = st.tabs(["Notícias", "Distribuição Temporal"])
