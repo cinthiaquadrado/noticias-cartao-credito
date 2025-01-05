@@ -11,9 +11,9 @@ st.set_page_config(page_title="Análise de Notícias", layout="wide")
 
 # Fontes de RSS
 RSS_FEEDS = [
-    {"name": "Tecnologia", "url": "https://news.google.com/rss/headlines/section/topic/TECHNOLOGY?hl=pt-BR&gl=BR&ceid=BR:pt-150"},
-    {"name": "Economia", "url": "https://news.google.com/rss/headlines/section/topic/BUSINESS?hl=pt-BR&gl=BR&ceid=BR:pt-150"},
     {"name": "Finanças", "url": "https://news.google.com/rss/headlines/section/topic/FINANCE?hl=pt-BR&gl=BR&ceid=BR:pt-150"},
+    {"name": "Tecnologia", "url": "https://news.google.com/rss/headlines/section/topic/TECHNOLOGY?hl=pt-BR&gl=BR&ceid=BR:pt-150"},
+    {"name": "Economia", "url": "https://news.google.com/rss/headlines/section/topic/BUSINESS?hl=pt-BR&gl=BR&ceid=BR:pt-150"}
 ]
 
 # Função para buscar e processar as notícias
@@ -155,8 +155,8 @@ def main():
     filtered_data["sentiment"] = filtered_data["title"].apply(analyze_sentiment_vader)
     filtered_data = filtered_data.sort_values(by="date_parsed", ascending=False)
 
-    # Top 15 notícias
-    top_news = filtered_data.head(15)
+    # Top notícias
+    top_news = filtered_data.head(30)
 
     # Abas no Streamlit
     tab1, tab2 = st.tabs(["Notícias", "Análise"])
@@ -166,7 +166,7 @@ def main():
 
     with tab2:
         display_distribution(filtered_data)
-        generate_wordcloud(filtered_data, keywords)
+        generate_wordcloud(keywords)
         display_sentiment_analysis(filtered_data)
 
 if __name__ == "__main__":
