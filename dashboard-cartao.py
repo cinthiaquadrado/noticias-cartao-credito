@@ -144,7 +144,7 @@ def main():
         # Aplicar filtros
         news_data["date_parsed"] = pd.to_datetime(news_data["date"], errors='coerce')
         filtered_data = news_data[
-            #(news_data["source"].isin(sources)) &  # Filtro por fontes
+            (news_data["source"].isin(sources)) &  # Filtro por fontes
             (news_data["date_parsed"].dt.date >= start_date) &  # Filtro por data inicial
             (news_data["date_parsed"].dt.date <= end_date)  # Filtro por data final
         ]
@@ -160,12 +160,18 @@ def main():
         # Análise de Sentimentos
         filtered_data["sentiment"] = filtered_data["title"].apply(analyze_sentiment)
 
+        # Ordenar notícias pela data (ou pelo critério que preferir)
+        filtered_data = filtered_data.sort_values(by="date_parsed", ascending=False)
+
+        # Limitar a 15 notícias
+        top_news = filtered_data.head(15)
+
         # Exibição de abas no dashboard
         tab1, tab2 = st.tabs(["Notícias", "Distribuição Temporal"])
 
         with tab1:
-            if not filtered_data.empty:
-                display_news(filtered_data)
+            if not top_news.empty:
+                display_news(top_news)
             else:
                 st.write("Nenhuma notícia encontrada para os filtros aplicados.")
 
@@ -178,6 +184,7 @@ def main():
                 st.write("Nenhuma informação para exibir na distribuição temporal.")
     else:
         st.write("Não foi possível buscar as notícias.")
+
 
 
 # Executar o Streamlit
