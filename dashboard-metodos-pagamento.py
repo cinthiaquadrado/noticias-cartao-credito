@@ -49,22 +49,48 @@ def display_news(news_df):
         st.markdown(f"**Data:** {row['date']}  **Fonte:** {row['source']}  **Sentimento:** {row['sentiment']}")
         st.write("---")
 
-# Função para exibir a distribuição das notícias
+# Função para exibir a distribuição temporal das notícias
 def display_distribution(news_df):
-    st.header("Distribuição Temporal de Notícias")
+    # Distribuição temporal por dia, mês e ano
     news_df['date_parsed'] = pd.to_datetime(news_df['date'], errors='coerce')
     news_df = news_df.dropna(subset=['date_parsed'])
     
     news_df['day'] = news_df['date_parsed'].dt.date
-    date_counts = news_df['day'].value_counts().sort_index()
+    news_df['month'] = news_df['date_parsed'].dt.to_period('M')
+    news_df['year'] = news_df['date_parsed'].dt.to_period('Y')
+
+    # Gráfico de distribuição por dia
+    st.header("Distribuição Temporal de Notícias")
     
-    date_counts.plot(kind="bar", color="skyblue", alpha=0.7)
+    # Por dia
+    day_counts = news_df['day'].value_counts().sort_index()
+    st.subheader("Distribuição por Dia")
+    day_counts.plot(kind="bar", color="skyblue", alpha=0.7)
     plt.title("Distribuição de Notícias por Dia")
     plt.xlabel("Data")
     plt.ylabel("Número de Notícias")
     plt.xticks(rotation=45)
     st.pyplot(plt)
 
+    # Por mês
+    month_counts = news_df['month'].value_counts().sort_index()
+    st.subheader("Distribuição por Mês")
+    month_counts.plot(kind="bar", color="orange", alpha=0.7)
+    plt.title("Distribuição de Notícias por Mês")
+    plt.xlabel("Mês")
+    plt.ylabel("Número de Notícias")
+    st.pyplot(plt)
+
+    # Por ano
+    year_counts = news_df['year'].value_counts().sort_index()
+    st.subheader("Distribuição por Ano")
+    year_counts.plot(kind="bar", color="green", alpha=0.7)
+    plt.title("Distribuição de Notícias por Ano")
+    plt.xlabel("Ano")
+    plt.ylabel("Número de Notícias")
+    st.pyplot(plt)
+
+    # Nuvem de palavras
     st.subheader("Nuvem de Palavras")
     all_text = " ".join(news_df["title"].fillna("") + " " + news_df["summary"].fillna(""))
     wordcloud = WordCloud(width=800, height=400, background_color="white").generate(all_text)
@@ -72,6 +98,12 @@ def display_distribution(news_df):
     plt.axis("off")
     st.pyplot(plt)
 
+    # Gráfico de Sentimentos
+    st.subheader("Análise de Sentimentos")
+    sentiment_counts = news_df["sentiment"].value_counts()
+    st.bar_chart(sentiment_counts)
+
+# Função principal para criar o dashboard
 def main():
     st.title("Dashboard de Notícias - Métodos de Pagamento")
     
@@ -119,12 +151,9 @@ def main():
     
     with tab1:
         display_news(top_news)
-        display_distribution(filtered_data)
 
     with tab2:
-        # Análise de Sentimentos
-        sentiment_counts = filtered_data["sentiment"].value_counts()
-        st.bar_chart(sentiment_counts)
+        display_distribution(filtered_data)
 
 if __name__ == "__main__":
     main()
